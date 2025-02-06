@@ -1,9 +1,12 @@
 plugins {
     id 'java'
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
 
 group = 'io.github.oasisframework'
-version = '1.0-SNAPSHOT'
+version = '1.0.1'
 
 repositories {
     mavenCentral()
@@ -25,4 +28,73 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+publishing {
+    repositories {
+        maven {
+            def releaseRepo = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+
+            url = isReleaseVersion ? releaseRepo : snapshotRepo
+
+            credentials {
+                username "9NjN8eC4"
+                password "IhmyYK51wudctSf3ZafCf9jB2TmnVi0CH/etaqxwWlbK"
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                groupId = 'io.github.oasisframework'
+                packaging ='jar'
+                name = 'Oasis Framework Hazelcast Common Helper'
+                description = 'Oasis Framework Hazelcast Common Helper'
+                url = 'https://github.com/oasisframework/hazelcast-common-helper'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git://github.com/oasisframework/hazelcast-common-helper.git'
+                    developerConnection = 'scm:git:git@github.com:oasisframework/hazelcast-common-helper.git'
+                    url = 'https://github.com/oasisframework/hazelcast-common-helper'
+                }
+
+                developers {
+                    developer {
+                        id = 'oasisframework'
+                        name = 'Oasis Framework'
+                        email = 'oasisframework@gmail.com'
+                    }
+                }
+            }
+            from components.java
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+tasks.withType(Sign) {
+    onlyIf { isReleaseVersion }
 }
